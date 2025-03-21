@@ -1,6 +1,7 @@
 import { Request, Response, NextFunction } from "express";
 import jwt from "jsonwebtoken";
 import "dotenv/config";
+import User from "../types/User.js";
 
 const { JWT_SECRET_KEY } = process.env;
 
@@ -15,16 +16,20 @@ export default function authenticateToken(
   const authHeader = req.headers.authorization;
   if (!authHeader) {
     console.log("Error Code 401: No JWT provided");
-    return res.status(401).json({ message: "No JWT Provided" });
+    res.status(401).json({ message: "No JWT Provided" });
+    return;
   }
   const token = authHeader.split(" ")[1];
-  jwt.verify(token, JWT_SECRET_KEY, (err, decoded) => {
+  // decoded is whatever was signed to the jwt. This is user_id and username in users-controller.ts/authenticateUser
+  jwt.verify(token, JWT_SECRET_KEY, (err, decoded: User) => {
+    console.log(err, token, decoded);
     if (err) {
-      console.log("Error Code 498: Token Validation Failed");
-      return res.status(498).json({ message: "Token validation failed" });
+      console.log(`Error Code 498: Token Validation Failed. ${err}`);
+      res.status(498).json({ message: "Token validation failed" });
+      return;
     }
     console.log(decoded);
-    req.user = decoded as any;
+    req.user = decoded;
     next();
   });
 }

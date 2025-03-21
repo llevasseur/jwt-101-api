@@ -18,15 +18,34 @@ export const authenticateUser = async (req, res) => {
             return;
         }
         // Generate JWT token
-        const token = jwt.sign({ userId: user.id, userName: user.username }, JWT_SECRET_KEY, { expiresIn: "1h" });
+        const token = jwt.sign({ id: user.id, username: user.username }, JWT_SECRET_KEY, { expiresIn: "1h" });
         res.json({ token });
     }
     catch (error) {
-        console.log(`Error connecting to database. ${error}`);
+        console.log(`Error Code 500: Error connecting to database. ${error}`);
         res.status(500).json({
             message: "Error connecting to database when authenticating user.",
         });
         return;
+    }
+};
+export const getUserPosts = async (req, res) => {
+    if (!req.user) {
+        console.log("Error Code 401: Not Authorized");
+        res.status(401).json({ message: "Not Authorized" });
+        return;
+    }
+    try {
+        const posts = await knex("posts")
+            .join("users", "posts.user_id", "users.id")
+            .where({ user_id: req.user.id })
+            .select("posts.*", "users.id as user_id", "users.username");
+        console.log(posts);
+        res.json(posts);
+    }
+    catch (error) {
+        console.log(`Error Code 500: Database Error when getting user posts`);
+        res.status(500).json({ message: "Database Error when getting user posts" });
     }
 };
 //# sourceMappingURL=users-controller.js.map
