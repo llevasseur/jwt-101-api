@@ -7,6 +7,11 @@ const knex = initKnex(configuration);
 
 const { JWT_SECRET_KEY } = process.env;
 
+export const getUser = async (req: Request, res: Response) => {
+  console.log("test");
+  res.json({ user: req.user });
+};
+
 export const authenticateUser = async (req: Request, res: Response) => {
   const { username, password } = req.body;
   if (!username || !password || !username.trim() || !password.trim()) {
@@ -49,7 +54,6 @@ export const getUserPosts = async (req: Request, res: Response) => {
       .where({ user_id: req.user.id })
       .select("posts.*", "users.id as user_id", "users.username");
 
-    console.log(posts);
     res.json(posts);
   } catch (error) {
     console.log(`Error Code 500: Database Error when getting user posts`);

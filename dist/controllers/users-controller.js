@@ -3,6 +3,10 @@ import configuration from "../knexfile.js";
 import jwt from "jsonwebtoken";
 const knex = initKnex(configuration);
 const { JWT_SECRET_KEY } = process.env;
+export const getUser = async (req, res) => {
+    console.log("test");
+    res.json({ user: req.user });
+};
 export const authenticateUser = async (req, res) => {
     const { username, password } = req.body;
     if (!username || !password || !username.trim() || !password.trim()) {
@@ -40,7 +44,6 @@ export const getUserPosts = async (req, res) => {
             .join("users", "posts.user_id", "users.id")
             .where({ user_id: req.user.id })
             .select("posts.*", "users.id as user_id", "users.username");
-        console.log(posts);
         res.json(posts);
     }
     catch (error) {

@@ -20,15 +20,13 @@ export default function authenticateToken(
     return;
   }
   const token = authHeader.split(" ")[1];
-  // decoded is whatever was signed to the jwt. This is user_id and username in users-controller.ts/authenticateUser
+  // decoded is whatever was signed to the jwt. This is id and username in users-controller.ts/authenticateUser
   jwt.verify(token, JWT_SECRET_KEY, (err, decoded: User) => {
-    console.log(err, token, decoded);
     if (err) {
       console.log(`Error Code 498: Token Validation Failed. ${err}`);
       res.status(498).json({ message: "Token validation failed" });
       return;
     }
-    console.log(decoded);
     req.user = decoded;
     next();
   });

@@ -1,12 +1,12 @@
 import express from "express";
 import "dotenv/config";
 import cors from "cors";
-import userRoutes from "./routes/users.js";
+import userRoutes from "./routes/user.js";
 const app = express();
 const PORT = process.env.PORT || 8080;
 app.use(express.json());
 app.use(cors());
-app.use("/users", userRoutes);
+app.use("/user", userRoutes);
 app.get("/", (_req, res) => {
     res.send("Welcome to JWT-101-api! 👋");
 });
