@@ -17,8 +17,8 @@ export const authenticateUser = async (req, res) => {
     try {
         const user = await knex("users").where({ username, password }).first();
         if (!user) {
-            console.log("Error Code 401: No User Found");
-            res.status(401).json({ message: "No User Found, Authentication Failed" });
+            console.log("Error Code 404: No User Found");
+            res.status(404).json({ message: "No User Found, Authentication Failed" });
             return;
         }
         // Generate JWT token

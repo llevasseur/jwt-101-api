@@ -15,8 +15,8 @@ export default function authenticateToken(
   // ["Bearer",  "token"]
   const authHeader = req.headers.authorization;
   if (!authHeader) {
-    console.log("Error Code 401: No JWT provided");
-    res.status(401).json({ message: "No JWT Provided" });
+    console.log("Error Code 3: No JWT provided");
+    res.status(403).json({ message: "No JWT Provided" });
     return;
   }
   const token = authHeader.split(" ")[1];
