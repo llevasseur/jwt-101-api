@@ -2,13 +2,12 @@ import initKnex from "knex";
 import configuration from "../knexfile.js";
 import { Request, Response, NextFunction } from "express";
 import jwt from "jsonwebtoken";
-import authenticateToken from "../utils/authenticate-token.js";
+import { hashPassword, verifyPassword } from "../utils/hash-password.js";
 const knex = initKnex(configuration);
 
 const { JWT_SECRET_KEY } = process.env;
 
 export const getUser = async (req: Request, res: Response) => {
-  console.log("test");
   res.json({ user: req.user });
 };
 
@@ -20,10 +19,16 @@ export const authenticateUser = async (req: Request, res: Response) => {
     return;
   }
   try {
-    const user = await knex("users").where({ username, password }).first();
+    const user = await knex("users").where({ username }).first();
     if (!user) {
       console.log("Error Code 404: No User Found");
       res.status(404).json({ message: "No User Found, Authentication Failed" });
+      return;
+    }
+    const isPasswordValid = await verifyPassword(password, user.password);
+    if (!isPasswordValid) {
+      console.log("Error Code 401: Not Authorized");
+      res.status(404).json({ message: "Not Authorized" });
       return;
     }
     // Generate JWT token
@@ -87,8 +92,9 @@ export const addUser = async (
       res.status(409).json({ message: "User already exists" });
       return;
     }
+    const hashedPassword = await hashPassword(password);
     const [{ id: newUserId }] = await knex("users")
-      .insert({ username, password })
+      .insert({ username, password: hashedPassword })
       .returning("id");
     if (!newUserId) {
       throw new Error("User did not insert");
