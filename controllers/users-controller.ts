@@ -60,3 +60,44 @@ export const getUserPosts = async (req: Request, res: Response) => {
     res.status(500).json({ message: "Database Error when getting user posts" });
   }
 };
+
+export const addUser = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+) => {
+  const { username, password } = req.body;
+  if (!username.trim() || !password.trim()) {
+    console.log(`Error Code 400: Must provide all information`);
+    res.status(400).json({ message: "Must provide all information" });
+    return;
+  }
+  if (password.length < 8) {
+    console.log(`Error Code 400: Invalid password. Password is too short`);
+    res
+      .status(400)
+      .json({ message: "Invalid password. Password is too short" });
+    return;
+  }
+
+  try {
+    const userAlreadyExists = await knex("users").where({ username }).first();
+    if (userAlreadyExists) {
+      console.log("Error Code 409: User already exists");
+      res.status(409).json({ message: "User already exists" });
+      return;
+    }
+    const [{ id: newUserId }] = await knex("users")
+      .insert({ username, password })
+      .returning("id");
+    if (!newUserId) {
+      throw new Error("User did not insert");
+    }
+    next();
+  } catch (error) {
+    console.log(
+      `Error Code 500: Database error when posting new user. ${error}`
+    );
+    res.status(500).json({ message: "Database error when posting new user" });
+  }
+};
