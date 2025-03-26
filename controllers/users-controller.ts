@@ -107,3 +107,39 @@ export const addUser = async (
     res.status(500).json({ message: "Database error when posting new user" });
   }
 };
+
+export const addUserPost = async (req: Request, res: Response) => {
+  if (!req.user) {
+    console.log("Error Code 401: Not Authorized");
+    res.status(401).json({ message: "Not Authorized" });
+    return;
+  }
+
+  const { title, body } = req.body;
+  const userId = req.user.id;
+
+  if (!title.trim() || !body.trim()) {
+    console.log("Error Code 400: Must provide all information to post");
+    res.status(400).json({ message: "Must provide all information to post" });
+  }
+
+  try {
+    const [{ id: newPostId }] = await knex("posts")
+      .insert({
+        user_id: userId,
+        title,
+        body,
+      })
+      .returning("id");
+
+    const newPost = await knex("posts")
+      .join("users", "posts.user_id", "users.id")
+      .where({ "posts.id": newPostId })
+      .select("posts.*", "users.id as user_id", "users.username")
+      .first();
+    res.status(201).json(newPost);
+  } catch (error) {
+    console.log(`Error Code 500: Database error when adding new post`);
+    res.status(500).json({ message: "Database error when adding new post" });
+  }
+};
